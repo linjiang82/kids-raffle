@@ -1,7 +1,7 @@
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Text, View, Dimensions } from "react-native";
-import { mmkvStorage } from "../../common/storage/storage";
+import { asyncStorage } from "../../common/storage/storage";
 
 export default () => {
   const { height } = Dimensions.get("window");
@@ -21,16 +21,42 @@ export default () => {
 };
 
 const BarColumn = ({ name }: { name: string }) => {
-  let bars = mmkvStorage.getItem(name);
-  if (bars === undefined || typeof bars !== "number") {
-    mmkvStorage.setItem(name, 0);
-    bars = 0;
-  }
-  const [count, setCount] = useState(bars);
+  const raffleCountKey = `${name}raffle`;
+  const [count, setCount] = useState(0);
+  const [raffleCount, setRaffleCount] = useState(0);
+
+  useEffect(() => {
+    const getBars = async () => {
+      const bars = await asyncStorage.getItem(name);
+      if (bars === undefined || bars === null) {
+        asyncStorage.setItem(name, "0");
+        setCount(0);
+      } else {
+        setCount(parseInt(bars));
+      }
+    };
+    const getRaffle = async () => {
+      const raffle = await asyncStorage.getItem(raffleCountKey);
+      if (raffle === undefined || raffle === null) {
+        setRaffleCount(0);
+      } else {
+        setRaffleCount(parseInt(raffle));
+      }
+    };
+    getBars();
+    getRaffle();
+  }, []);
 
   const updateCount = () => {
-    setCount(count + 1);
-    mmkvStorage.setItem(name, count + 1);
+    if (count < 0) return;
+    const newCount = count + 1 >= 10 ? 0 : count + 1;
+    // adding a raffle ticket
+    if (newCount === 0) {
+      asyncStorage.setItem(raffleCountKey, `${raffleCount + 1}`);
+      setRaffleCount(raffleCount + 1);
+    }
+    setCount(newCount);
+    asyncStorage.setItem(name, `${newCount}`);
   };
   return (
     <View
@@ -41,6 +67,9 @@ const BarColumn = ({ name }: { name: string }) => {
         height: "100%",
       }}
     >
+      <Text style={{ fontSize: 20, fontWeight: "bold", marginTop: 10 }}>
+        {`Earned: ${raffleCount}`}
+      </Text>
       <View
         style={{
           flexDirection: "column",
@@ -72,7 +101,7 @@ const BarColumn = ({ name }: { name: string }) => {
           <Button title="Add" onPress={updateCount} />
         </View>
         <Text style={{ fontSize: 20, fontWeight: "bold", marginTop: 10 }}>
-          {name}
+          {`${name} (${count})`}
         </Text>
       </View>
     </View>

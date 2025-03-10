@@ -1,47 +1,45 @@
-import { MMKV } from "react-native-mmkv";
+import AS from "@react-native-async-storage/async-storage";
 
 export interface Storage {
-  setItem: (key: string, value: string | number | boolean) => void;
-  getItem: (key: string) => string | number | boolean | undefined;
+  setItem: (key: string, value: string) => void;
+  getItem: (
+    key: string,
+  ) => string | number | boolean | undefined | Promise<string | null>;
   clear: () => void;
   removeItem: (key: string) => void;
   containsKey: (key: string) => boolean;
 }
 
-class MMKVStorage implements Storage {
-  private static storage: MMKV;
-  private static instance: MMKVStorage;
+class AsyncStorage implements Storage {
+  private static storage: typeof AS;
+  private static instance: AsyncStorage;
   constructor() {
-    if (MMKVStorage.instance) {
-      return MMKVStorage.instance;
+    if (AsyncStorage.instance) {
+      return AsyncStorage.instance;
     }
-    MMKVStorage.storage = new MMKV();
-    MMKVStorage.instance = this;
+    AsyncStorage.storage = AS;
+    AsyncStorage.instance = this;
   }
 
-  setItem(key: string, value: string | number | boolean): void {
-    MMKVStorage.storage.set(key, value);
+  setItem(key: string, value: string): void {
+    AsyncStorage.storage.setItem(key, value);
   }
 
   getItem(key: string) {
-    return (
-      MMKVStorage.storage.getString(key) ||
-      MMKVStorage.storage.getNumber(key) ||
-      MMKVStorage.storage.getBoolean(key)
-    );
+    return AsyncStorage.storage.getItem(key);
   }
 
   clear() {
-    MMKVStorage.storage.clearAll();
+    AsyncStorage.storage.clear();
   }
 
   removeItem(key: string) {
-    MMKVStorage.storage.delete(key);
+    AsyncStorage.storage.removeItem(key);
   }
 
   containsKey(key: string) {
-    return MMKVStorage.storage.contains(key);
+    return !!this.getItem(key);
   }
 }
 
-export const mmkvStorage = new MMKVStorage();
+export const asyncStorage = new AsyncStorage();

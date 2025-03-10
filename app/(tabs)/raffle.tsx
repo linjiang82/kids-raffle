@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -6,8 +6,8 @@ import {
   Animated,
   StyleSheet,
   Easing,
-} from 'react-native';
-import Svg, { Path, G, Text as SvgText } from 'react-native-svg';
+} from "react-native";
+import Svg, { Path, G, Text as SvgText } from "react-native-svg";
 
 // 定义奖品类型
 interface Prize {
@@ -18,21 +18,24 @@ interface Prize {
 
 // 奖品数据
 const prizes: Prize[] = [
-  { name: '$30', probability: 0.01, color: '#FF6B6B' },
-  { name: '$25', probability: 0.05, color: '#4ECDC4' },
-  { name: '$20', probability: 0.1, color: '#45B7D1' },
-  { name: '$15', probability: 0.14, color: '#FFD700' },
-  { name: '$10', probability: 0.2, color: '#FF8C00' },
-  { name: '$5', probability: 0.2, color: '#ADFF2F' },
-  { name: '$4', probability: 0.1, color: '#00CED1' },
-  { name: '$3', probability: 0.1, color: '#FF69B4' },
-  { name: '$2', probability: 0.05, color: '#BA55D3' },
-  { name: '$1', probability: 0.05, color: '#96CEB4' },
+  { name: "$30", probability: 0.01, color: "#FF6B6B" },
+  { name: "$25", probability: 0.05, color: "#4ECDC4" },
+  { name: "$20", probability: 0.1, color: "#45B7D1" },
+  { name: "$15", probability: 0.14, color: "#FFD700" },
+  { name: "$10", probability: 0.2, color: "#FF8C00" },
+  { name: "$5", probability: 0.2, color: "#ADFF2F" },
+  { name: "$4", probability: 0.1, color: "#00CED1" },
+  { name: "$3", probability: 0.1, color: "#FF69B4" },
+  { name: "$2", probability: 0.05, color: "#BA55D3" },
+  { name: "$1", probability: 0.05, color: "#96CEB4" },
 ];
 
 const SpinWheel: React.FC = () => {
   const [result, setResult] = useState<number>(0); // 抽中的奖品index
+  const [loading, setLoading] = useState<boolean>(false); // 是否正在抽奖
   const spinValue = useRef(new Animated.Value(0)).current; // 旋转角度
+
+  const styles = useMemo(() => createStyleFn(loading), [loading]);
 
   // 根据概率随机选择奖品
   const getPrizeIndex = (): number => {
@@ -42,7 +45,6 @@ const SpinWheel: React.FC = () => {
       let prize = prizes[idx];
       cumulative += prize.probability;
       if (rand <= cumulative) return idx;
-
     }
     return prizes.length - 1; // 兜底
   };
@@ -50,19 +52,21 @@ const SpinWheel: React.FC = () => {
   // 开始旋转
   const spin = (): void => {
     setResult(0); // 清空上一次结果
+    setLoading(true);
     spinValue.setValue(0); // 重置角度
 
     const totalDegrees = 360 * 5; // 旋转5圈
     const sectionDegrees = 360 / prizes.length; // 每个奖品的扇形角度
     const prizeIndex = getPrizeIndex();
-    const targetDegrees = totalDegrees + (prizeIndex * sectionDegrees);
+    const targetDegrees = totalDegrees + prizeIndex * sectionDegrees;
 
     Animated.timing(spinValue, {
       toValue: targetDegrees,
       duration: 4000,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
-    }).start(() => {
+    }).start(({ finished }) => {
+      if (finished) setLoading(false);
       setResult(prizeIndex);
     });
   };
@@ -70,11 +74,15 @@ const SpinWheel: React.FC = () => {
   // 转盘旋转动画
   const spinAnimation = spinValue.interpolate({
     inputRange: [0, 360],
-    outputRange: ['0deg', '-360deg'],
+    outputRange: ["0deg", "-360deg"],
   });
 
   // 计算扇形路径
-  const getSectorPath = (index: number, total: number, radius: number): string => {
+  const getSectorPath = (
+    index: number,
+    total: number,
+    radius: number,
+  ): string => {
     const angle = 360 / total;
     const startAngle = angle * index - angle / 2 - 90;
     const endAngle = startAngle + angle;
@@ -123,7 +131,11 @@ const SpinWheel: React.FC = () => {
             </G>
             <G>
               {prizes.map((prize, index) => {
-                const { x, y, angle } = getTextPosition(index, prizes.length, 150);
+                const { x, y, angle } = getTextPosition(
+                  index,
+                  prizes.length,
+                  150,
+                );
                 return (
                   <SvgText
                     key={index}
@@ -155,55 +167,58 @@ const SpinWheel: React.FC = () => {
       </View>
 
       {/* 开始按钮 */}
-      <TouchableOpacity style={styles.button} onPress={spin}>
+      <TouchableOpacity style={styles.button} onPress={spin} disabled={loading}>
         <Text style={styles.buttonText}>Start</Text>
       </TouchableOpacity>
 
-      <Text style={styles.result}>{result ? `You win: ${prizes[result].name}` : "Spin to win"}</Text>
+      <Text style={styles.result}>
+        {result ? `You win: ${prizes[result].name}` : "Spin to win"}
+      </Text>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  wheelContainer: {
-    position: 'relative',
-    width: 300,
-    height: 300,
-  },
-  prizeText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFF',
-    textAlign: 'center',
-  },
-  arrow: {
-    position: 'absolute',
-    top: -20,
-    left: '50%',
-    transform: [{ translateX: -20 }],
-  },
-  button: {
-    marginTop: 30,
-    padding: 12,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  result: {
-    marginTop: 20,
-    fontSize: 20,
-    color: '#333',
-  },
-});
+const createStyleFn = (loading: boolean) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "#f5f5f5",
+    },
+    wheelContainer: {
+      position: "relative",
+      width: 300,
+      height: 300,
+    },
+    prizeText: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: "#FFF",
+      textAlign: "center",
+    },
+    arrow: {
+      position: "absolute",
+      top: -20,
+      left: "50%",
+      transform: [{ translateX: -20 }],
+    },
+    button: {
+      marginTop: 30,
+      padding: 12,
+      backgroundColor: loading ? "grey" : "#007AFF",
+      borderRadius: 8,
+    },
+    buttonText: {
+      color: loading ? "lightgrey" : "#fff",
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    result: {
+      marginTop: 20,
+      fontSize: 20,
+      color: "#333",
+    },
+  });
 
 export default SpinWheel;
