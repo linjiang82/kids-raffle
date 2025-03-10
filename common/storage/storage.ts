@@ -1,7 +1,7 @@
 import AS from "@react-native-async-storage/async-storage";
 
 export interface Storage {
-  setItem: (key: string, value: string) => void;
+  setItem: (key: string, value: string, callback: () => void) => void;
   getItem: (
     key: string,
   ) => string | number | boolean | undefined | Promise<string | null>;
@@ -21,8 +21,8 @@ class AsyncStorage implements Storage {
     AsyncStorage.instance = this;
   }
 
-  setItem(key: string, value: string): void {
-    AsyncStorage.storage.setItem(key, value);
+  setItem(key: string, value: string, callback?: () => void): void {
+    AsyncStorage.storage.setItem(key, value, callback);
   }
 
   getItem(key: string) {
