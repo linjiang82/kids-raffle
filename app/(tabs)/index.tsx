@@ -24,8 +24,8 @@ export default () => {
         alignItems: "center",
       }}
     >
-      <BarColumn name="Emma" callback={triggerConfetti} />
-      <BarColumn name="Emily" callback={triggerConfetti} />
+      <BarColumn name="Emma" />
+      <BarColumn name="Emily" />
 
       <ConfettiCannon
         count={200}
