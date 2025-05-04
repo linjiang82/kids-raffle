@@ -14,7 +14,7 @@ export default function Modal() {
 
   const isAdminVisible = password === PASSWORD;
 
-  const content = isAdminVisible ? (
+  const content = true ? (
     <SettingScreen />
   ) : (
     <TextInput

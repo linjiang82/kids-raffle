@@ -6,6 +6,7 @@ import {
   CongratsOverlay,
   CongratsOverlayRef,
 } from "@/component/CongratsOverlay";
+import { Emily, Emma } from "@/common/constant";
 
 export default () => {
   const { height } = Dimensions.get("window");
@@ -24,8 +25,8 @@ export default () => {
         alignItems: "center",
       }}
     >
-      <BarColumn name="Emma" />
-      <BarColumn name="Emily" />
+      <BarColumn name={Emma} />
+      <BarColumn name={Emily} />
 
       <ConfettiCannon
         count={200}

@@ -1,5 +1,6 @@
 export const PASSWORD = "123456";
 
-type Emma = "emma";
-type Emily = "emily";
-export type Participants = Emma | Emily;
+export const Emma = "Emma";
+export const Emily = "Emily";
+export const CandidatesList = [Emma, Emily] as const;
+export type CandidatesList = (typeof CandidatesList)[number];

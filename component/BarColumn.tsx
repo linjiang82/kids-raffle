@@ -1,11 +1,12 @@
+import { type CandidatesList } from "@/common/constant";
 import { useTicketCount } from "@/hooks/useTicketCount";
 import { View, Text } from "react-native";
 
-export const BarColumn = ({ name }: { name: string }) => {
+export const BarColumn = ({ name }: { name: CandidatesList }) => {
   const { ticketCount } = useTicketCount(name);
 
-  const raffleCount = ticketCount % 10;
-  const count = Math.floor(ticketCount / 10);
+  const count = ticketCount % 10;
+  const raffleCount = Math.floor(ticketCount / 10);
 
   return (
     <View
