@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { asyncStorage } from "@/common/storage/storage";
 import { type CandidatesList } from "@/common/constant";
+import { getRaffle } from "@/apis/getRaffle";
 
 export const useTicketCount = (name: CandidatesList) => {
   const [ticketCount, setTicketCount] = useState(0);
@@ -8,17 +9,10 @@ export const useTicketCount = (name: CandidatesList) => {
   const raffleCountKey = `${name}raffle`;
 
   useEffect(() => {
-    const getRaffle = async () => {
-      const raffle = await asyncStorage.getItem(raffleCountKey);
-      console.log("raffle", raffle, raffleCountKey);
-      if (raffle === undefined || raffle === null) {
-        setTicketCount(0);
-      } else {
-        setTicketCount(parseInt(raffle));
-      }
-    };
-    getRaffle();
-  });
+    getRaffle(name).then((count) => {
+      setTicketCount(count);
+    });
+  }, [name]);
 
   const incrementCount = useCallback(() => {
     if (ticketCount < 0) return;

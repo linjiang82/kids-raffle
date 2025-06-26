@@ -1,5 +1,4 @@
 import { Button, Text, View, StyleSheet } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import { useState } from "react";
 import { useTicketCount } from "@/hooks/useTicketCount";
 import { CandidatesList, Emma } from "@/common/constant";
@@ -33,4 +32,3 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-
